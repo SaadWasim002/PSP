@@ -1,5 +1,6 @@
 package com.upi.psp.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -18,8 +19,10 @@ public class VpaRegisterRequest {
     private String vpa;
 
     @NotNull(message = "account_id is required")
+    @JsonProperty("account_id")
     private UUID accountId;
 
     @NotBlank(message = "account_holder is required")
+    @JsonProperty("account_holder")
     private String accountHolder;
 }
