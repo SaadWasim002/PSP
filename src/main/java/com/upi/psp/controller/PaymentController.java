@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +20,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/psp/api")
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -62,5 +64,12 @@ public class PaymentController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
+
+    @GetMapping("/txn/{transactionId}")
+    public ResponseEntity<PaymentResponse> getTransactionStatus(@PathVariable UUID transactionId) {
+        log.info("Received request to poll status for transaction ID: {}", transactionId);
+        PaymentResponse response = paymentService.getTransactionStatus(transactionId);
+        return ResponseEntity.ok(response);
     }
 }

@@ -36,8 +36,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        // Apply only to POST /api/pay
-        if ("POST".equalsIgnoreCase(method) && ("/api/pay".equals(path) || "/api/pay/".equals(path))) {
+        // Apply only to POST /psp/api/pay
+        if ("POST".equalsIgnoreCase(method) && ("/psp/api/pay".equals(path) || "/psp/api/pay/".equals(path))) {
             String clientIp = getClientIp(request);
             long currentTime = System.currentTimeMillis();
 
