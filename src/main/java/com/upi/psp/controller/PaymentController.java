@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/psp/api")
 @RequiredArgsConstructor
 public class PaymentController {
 
