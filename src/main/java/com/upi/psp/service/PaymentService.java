@@ -168,4 +168,41 @@ public class PaymentService {
     public String hashPin(String rawPin) {
         return passwordEncoder.encode(rawPin);
     }
+
+    @Transactional
+    public PaymentResponse getTransactionStatus(UUID transactionId) {
+        log.info("Processing status poll for transaction ID: {}", transactionId);
+
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new PspException("TRANSACTION_NOT_FOUND", "Transaction not found", HttpStatus.NOT_FOUND, transactionId));
+
+        // If not terminal, sync with NPCI Switch
+        if ("PENDING".equalsIgnoreCase(transaction.getStatus()) || "INITIATED".equalsIgnoreCase(transaction.getStatus())) {
+            log.info("Transaction {} is pending. Fetching latest status from NPCI Switch.", transactionId);
+            try {
+                NpciPaymentResponse npciResponse = webClient.get()
+                        .uri(npciApiUrl + "/switch/txn/" + transactionId)
+                        .retrieve()
+                        .bodyToMono(NpciPaymentResponse.class)
+                        .block();
+
+                if (npciResponse != null && npciResponse.getStatus() != null) {
+                    log.info("NPCI Switch status for transaction ID {}: {}", transactionId, npciResponse.getStatus());
+                    transaction.setStatus(npciResponse.getStatus());
+                    transactionRepository.save(transaction);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch transaction status from NPCI Switch for ID: {}. Returning local status.", transactionId, e);
+            }
+        }
+
+        return PaymentResponse.builder()
+                .transactionId(transaction.getTransactionId())
+                .status(transaction.getStatus())
+                .payerVpa(transaction.getPayerVpa())
+                .payeeVpa(transaction.getPayeeVpa())
+                .amountPaise(transaction.getAmountPaise())
+                .remarks(transaction.getRemarks())
+                .build();
+    }
 }
